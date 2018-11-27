@@ -23,6 +23,23 @@ express()
     .get('/', (req, res) => res.render('pages/index'))    
     .listen(PORT, () => console.log(`Listening on ${PORT}`))
 
+var defaultOptions = {
+    // Google API key
+    key: null,
+    // Search in a specified field
+    field: null,
+    // The position in the collection at which to start the list of results (startIndex)
+    offset: 0,
+    // The maximum number of elements to return with this request (Max 40) (maxResults)
+    limit: 30,
+    // Restrict results to books or magazines (or both) (printType)
+    type: 'all',
+    // Order results by relevance or newest (orderBy)
+    order: 'relevance',
+    // Restrict results to a specified language (two-letter ISO-639-1 code) (langRestrict)
+    lang: 'en'
+};
+
 function getBooks(request, response) {
     var param = request.query.param;
 
@@ -41,9 +58,32 @@ function getBooks(request, response) {
                 var obj = List[i];
 
                 var valueToPush = {}; 
-                valueToPush["title"] = obj.title;
-                valueToPush["author"] = obj.authors[0];
-                valueToPush["copyright"] = obj.publishedDate.substring(0,4);
+                if (obj.title != undefined)
+                {
+                    valueToPush["title"] = obj.title;
+                }
+                else
+                {
+                    valueToPush["title"] = 'No title listed';
+                }                
+
+                if (obj.authors != undefined && obj.authors[0] != undefined)
+                {
+                    valueToPush["author"] = obj.authors[0];
+                }
+                else
+                {
+                    valueToPush["author"] = 'Author Unknown';
+                }
+
+                if (obj.publishedDate != undefined && obj.publishedDate.substring(0, 4) != undefined) {
+                    valueToPush["copyright"] = obj.publishedDate.substring(0, 4);
+                }
+                else {
+                    valueToPush["author"] = 0000;
+                }
+                
+                //valueToPush["copyright"] = obj.publishedDate.substring(0,4);
                 //valueToPush["description"] = obj.description;
                 data.push(valueToPush);
             }
@@ -57,7 +97,7 @@ function getBooks(request, response) {
 
 function getBookList(param, callback) {
 
-    books.search(param, function (error, results) {
+    books.search(param, defaultOptions, function (error, results) {
         if (!error) {
             //console.log(results);
             callback(null, results);
